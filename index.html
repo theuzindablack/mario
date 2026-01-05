@@ -2,21 +2,62 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Mario World - Versão Blindada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario World - Versão Final Local</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        #game-viewport { width: 800px; height: 400px; position: relative; overflow: hidden; border: 4px solid #fff; background: #63c4eb; }
-        #world { position: absolute; width: 5000px; height: 100%; }
-        .floor { position: absolute; bottom: 0; width: 100%; height: 50px; background-color: #27ae60; border-top: 5px solid #2ecc71; }
-        #mario { position: absolute; width: 50px; height: 50px; z-index: 10; image-rendering: pixelated; mix-blend-mode: multiply; }
+        
+        body { 
+            background-color: #222; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif;
+        }
+
+        #game-viewport { 
+            width: 800px; 
+            height: 400px; 
+            position: relative; 
+            overflow: hidden; 
+            border: 4px solid #fff; 
+            background: #63c4eb; /* Cor do céu */
+        }
+
+        #world { 
+            position: absolute; 
+            width: 5000px; 
+            height: 100%; 
+            transition: transform 0.1s ease-out;
+        }
+
+        .floor { 
+            position: absolute; 
+            bottom: 0; 
+            width: 100%; 
+            height: 50px; 
+            background-color: #27ae60; 
+            border-top: 5px solid #2ecc71; 
+        }
+
+        #mario { 
+            position: absolute; 
+            width: 50px; 
+            height: 50px; 
+            z-index: 10; 
+            image-rendering: pixelated; /* Mantém o estilo retro */
+            /* Se suas imagens tiverem fundo branco, use: mix-blend-mode: multiply; */
+        }
     </style>
 </head>
 <body>
+
     <div id="game-viewport">
         <div id="world">
             <div class="floor"></div>
-            <img id="mario" src="">
+            <img id="mario" src="parado_dir.png">
         </div>
     </div>
 
@@ -24,68 +65,91 @@
         const mario = document.getElementById('mario');
         const world = document.getElementById('world');
 
-        // FUNÇÃO LINK BLINDADO (lh3)
-        const d = (id) => `https://lh3.googleusercontent.com/d/$${id}`;
-        
+        // NOMES DOS ARQUIVOS (Devem estar na mesma pasta no Spck/GitHub)
         const sprites = {
-            parado: d("1Ajdg0M38-bo_34lPFtdcq6Jkb-zq0lfG"),
-            puloDir: d("142GNSPXoNoiZaIefJyiKt1AWe1CXTWbP"), 
-            puloEsq: d("1Cwzc53L_vx6M4aMdnLAnw1wk6FVSxj6d"),
-            agachoEsq: d("15v4VM3gieCrhv4g2pJ1IfcpHRVYmWHaU"),
-            agachoDir: d("1Nu5iT3QKLt7rxFYi7apFxAZnaEHambuU")
+            paradoDir: "parado_dir.png",
+            paradoEsq: "parado_esq.png",
+            puloDir: "pulo_dir.png", 
+            puloEsq: "pulo_esq.png",
+            agachoDir: "agacho_dir.png",
+            agachoEsq: "agacho_esq.png"
         };
 
-        let posX = 100, posY = 50, velY = 0, velX = 0, isJump = false;
+        // Variáveis de física e estado
+        let posX = 100, posY = 50, velY = 0, velX = 0;
+        let isJump = false;
         let ultimaDirecao = 'direita';
         const keys = {};
 
+        // Detectar teclas
         window.onkeydown = (e) => keys[e.code] = true;
         window.onkeyup = (e) => keys[e.code] = false;
 
         function update() {
+            // 1. Verificar se está agachado (Só agacha se estiver no chão)
             let isCrouching = (keys['KeyS'] || keys['ArrowDown']) && !isJump;
 
+            // 2. Movimento Lateral (Só anda se não estiver agachado)
             if (!isCrouching) {
                 if (keys['KeyD'] || keys['ArrowRight']) { 
-                    velX = 6; ultimaDirecao = 'direita';
+                    velX = 6; 
+                    ultimaDirecao = 'direita';
                 } else if (keys['KeyA'] || keys['ArrowLeft']) { 
-                    velX = -6; ultimaDirecao = 'esquerda';
-                } else { velX = 0; }
-            } else { velX = 0; }
+                    velX = -6; 
+                    ultimaDirecao = 'esquerda';
+                } else { 
+                    velX = 0; 
+                }
+            } else {
+                velX = 0; // Para de andar ao agachar
+            }
 
+            // 3. Lógica de Troca de Imagem
             let imgFinal;
-            let flip = 'scaleX(1)';
 
             if (isJump) {
                 imgFinal = (ultimaDirecao === 'direita') ? sprites.puloDir : sprites.puloEsq;
             } else if (isCrouching) {
                 imgFinal = (ultimaDirecao === 'direita') ? sprites.agachoDir : sprites.agachoEsq;
             } else {
-                imgFinal = sprites.parado;
-                if (ultimaDirecao === 'esquerda') flip = 'scaleX(-1)';
+                imgFinal = (ultimaDirecao === 'direita') ? sprites.paradoDir : sprites.paradoEsq;
             }
 
-            // Troca o SRC apenas se mudar a ação para economizar internet/memória
-            if (!mario.src.includes(imgFinal)) {
+            // Atualiza o SRC apenas se a imagem mudar
+            if (!mario.src.endsWith(imgFinal)) {
                 mario.src = imgFinal;
             }
-            mario.style.transform = flip;
 
-            if (keys['Space'] && !isJump && !isCrouching) { velY = -15; isJump = true; }
-            velY += 0.8;
+            // 4. Física do Pulo
+            if (keys['Space'] && !isJump && !isCrouching) { 
+                velY = -15; 
+                isJump = true; 
+            }
+            
+            velY += 0.8; // Gravidade
             posY -= velY;
             posX += velX;
 
-            if (posY <= 50) { posY = 50; velY = 0; isJump = false; }
-            if (posX > 400) world.style.transform = `translateX(${- (posX - 400)}px)`;
+            // 5. Colisão com o Chão
+            if (posY <= 50) { 
+                posY = 50; 
+                velY = 0; 
+                isJump = false; 
+            }
+            
+            // 6. Câmera (Segue o Mario)
+            if (posX > 400) {
+                world.style.transform = `translateX(${- (posX - 400)}px)`;
+            }
 
+            // 7. Aplicar posições no Mario
             mario.style.left = posX + 'px';
             mario.style.bottom = posY + 'px';
 
             requestAnimationFrame(update);
         }
 
-        mario.src = sprites.parado;
+        // Iniciar o loop do jogo
         update();
     </script>
 </body>
