@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mario World - Mapa Real</title>
+    <title>Mario World - Escala Corrigida</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial Black', sans-serif; }
@@ -11,74 +11,56 @@
         #game-viewport { width: 800px; height: 450px; position: relative; overflow: hidden; border: 4px solid #fff; background: #5c94fc; }
         #world { position: absolute; width: 5000px; height: 100%; }
 
-        /* CHÃO ESTILO MARIO WORLD */
+        /* CHÃO */
         .floor { 
+            position: absolute; bottom: 0; width: 100%; height: 60px; 
+            background: #70ad10; border-top: 5px solid #000;
+        }
+
+        /* MARIO - AJUSTE DE TAMANHO */
+        #mario { 
             position: absolute; 
-            bottom: 0; 
-            width: 100%; 
-            height: 60px; 
-            background: #70ad10; 
-            border-top: 5px solid #000;
-            background-image: linear-gradient(90deg, transparent 95%, rgba(0,0,0,0.1) 95%);
-            background-size: 40px 100%;
+            width: 120px; /* Aumentei para 120px */
+            height: 120px; 
+            z-index: 10; 
+            image-rendering: pixelated; 
+            mix-blend-mode: multiply;
+            /* Garante que a imagem caiba no quadrado sem esticar */
+            object-fit: contain; 
         }
 
-        /* BANDEIRA DE FINAL (GOAL POST) */
-        .goal-post {
-            position: absolute;
-            left: 4600px;
-            bottom: 60px;
-            width: 80px;
-            height: 250px;
-            border-left: 8px solid #fff;
-            border-right: 8px solid #fff;
-            display: flex;
-            justify-content: center;
-        }
-
-        .goal-bar {
-            position: absolute;
-            width: 100%;
-            height: 10px;
-            background: #fff;
-            bottom: 50px;
-            animation: moveBar 3s infinite alternate ease-in-out;
-        }
-
-        @keyframes moveBar {
-            from { bottom: 20px; }
-            to { bottom: 230px; }
-        }
-
-        /* BLOCOS */
+        /* BLOCO E MOEDA */
         .block {
-            position: absolute;
-            width: 40px;
-            height: 40px;
+            position: absolute; width: 45px; height: 45px;
             background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYURGn9L0vIHRXz3SEUw2oGSQGw_euzItjLQ&s');
             background-size: cover;
+            transition: transform 0.1s;
         }
 
-        /* MOEDA */
         .coin {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: #ffd700;
-            border-radius: 50%;
-            border: 3px solid #f1c40f;
+            position: absolute; width: 30px; height: 30px;
+            background: #ffd700; border-radius: 50%; border: 3px solid #f1c40f;
             animation: coinPop 0.5s forwards;
         }
 
         @keyframes coinPop {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(-120px); opacity: 0; }
         }
 
-        #mario { position: absolute; width: 100px; height: 100px; z-index: 10; image-rendering: pixelated; mix-blend-mode: multiply; }
+        /* BANDEIRA FINAL */
+        .goal-post {
+            position: absolute; left: 4600px; bottom: 60px;
+            width: 80px; height: 280px; border-left: 8px solid #fff; border-right: 8px solid #fff;
+        }
+        .goal-bar {
+            position: absolute; width: 100%; height: 12px; background: #fff;
+            bottom: 50px; animation: moveBar 3s infinite alternate ease-in-out;
+        }
+        @keyframes moveBar { from { bottom: 20px; } to { bottom: 250px; } }
 
         .overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; color: white; }
-        .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; margin-top: 20px; }
+        .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -92,14 +74,11 @@
         <div id="world">
             <div class="floor"></div>
             
-            <div class="goal-post">
-                <div class="goal-bar" id="goal-bar"></div>
-            </div>
+            <div class="goal-post"><div class="goal-bar"></div></div>
 
-            <div class="block" style="left: 400px; bottom: 200px;"></div>
-            <div class="block" style="left: 440px; bottom: 200px;"></div>
-            <div class="block" style="left: 1000px; bottom: 220px;"></div>
-            <div class="block" style="left: 2500px; bottom: 180px;"></div>
+            <div class="block" style="left: 500px; bottom: 220px;"></div>
+            <div class="block" style="left: 545px; bottom: 220px;"></div>
+            <div class="block" style="left: 900px; bottom: 260px;"></div>
 
             <img id="mario" src="parado_dir.png">
         </div>
@@ -108,7 +87,6 @@
     <script>
         const mario = document.getElementById('mario');
         const world = document.getElementById('world');
-        const winScreen = document.getElementById('win-screen');
         const blocks = document.querySelectorAll('.block');
 
         const sprites = {
@@ -116,20 +94,20 @@
             andarDir: "./andar_dir_passo.png", andarEsq: "./andar_esq_passo.png",
             puloDir: "./pulo_dir.png", puloEsq: "./pulo_esq.png",
             agachoDir: "./agacho_dir.png", agachoEsq: "./agacho_esq.png",
-            olharCima: "./olhar_cima.png", morto: "./morto.png"
+            olharCima: "./olhar_cima.png"
         };
 
         let posX = 100, posY = 60, velY = 0, velX = 0;
-        let isJump = false, ultimaDirecao = 'direita', jogoAtivo = true, frameAnim = 0;
+        let isJump = false, ultimaDir = 'direita', jogoAtivo = true, frameAnim = 0;
         const keys = {};
 
-        window.addEventListener('keydown', (e) => keys[e.code] = true);
-        window.addEventListener('keyup', (e) => keys[e.code] = false);
+        window.onkeydown = (e) => keys[e.code] = true;
+        window.onkeyup = (e) => keys[e.code] = false;
 
         function criarMoeda(x, y) {
             const coin = document.createElement('div');
             coin.className = 'coin';
-            coin.style.left = (x + 5) + 'px';
+            coin.style.left = (x + 8) + 'px';
             coin.style.bottom = (y + 40) + 'px';
             world.appendChild(coin);
             setTimeout(() => coin.remove(), 500);
@@ -138,63 +116,55 @@
         function update() {
             if (!jogoAtivo) return;
 
-            let isCrouching = (keys['KeyS'] || keys['ArrowDown']) && !isJump;
-            let isLookingUp = (keys['KeyW'] || keys['ArrowUp']) && !isJump && !keys['KeyA'] && !keys['KeyD'];
-            let andando = false;
+            let agachado = (keys['KeyS'] || keys['ArrowDown']) && !isJump;
+            let olhandoCima = (keys['KeyW'] || keys['ArrowUp']) && !isJump && !keys['KeyA'] && !keys['KeyD'];
+            let movendo = false;
 
-            // Movimento
-            if (!isCrouching && !isLookingUp) {
-                if (keys['KeyD'] || keys['ArrowRight']) { velX = 7; ultimaDirecao = 'direita'; andando = true; }
-                else if (keys['KeyA'] || keys['ArrowLeft']) { velX = -7; ultimaDirecao = 'esquerda'; andando = true; }
+            if (!agachado && !olhandoCima) {
+                if (keys['KeyD'] || keys['ArrowRight']) { velX = 7; ultimaDir = 'direita'; movendo = true; }
+                else if (keys['KeyA'] || keys['ArrowLeft']) { velX = -7; ultimaDir = 'esquerda'; movendo = true; }
                 else { velX = 0; }
             } else { velX = 0; }
 
-            if (keys['Space'] && !isJump && !isCrouching) { velY = -16; isJump = true; }
+            if (keys['Space'] && !isJump && !agachado) { velY = -16; isJump = true; }
 
-            velY += 0.8;
-            posY -= velY;
-            posX += velX;
-
+            velY += 0.8; posY -= velY; posX += velX;
             if (posY <= 60) { posY = 60; velY = 0; isJump = false; }
             if (posX < 0) posX = 0;
 
-            // Colisão Cabeça no Bloco
-            blocks.forEach(block => {
-                const bLeft = parseInt(block.style.left);
-                const bBottom = parseInt(block.style.bottom);
-                if (velY < 0 && (posY + 90) >= bBottom && (posY + 90) <= bBottom + 15 && (posX + 65) > bLeft && (posX + 35) < bLeft + 40) {
+            // Colisão Cabeça (ajustada para o novo tamanho)
+            blocks.forEach(b => {
+                let bl = parseInt(b.style.left);
+                let bb = parseInt(b.style.bottom);
+                // Mario tem 120px, a cabeça está por volta de 100px de altura
+                if (velY < 0 && (posY + 105) >= bb && (posY + 105) <= bb + 15 && (posX + 80) > bl && (posX + 40) < bl + 45) {
                     velY = 2;
-                    block.style.transform = "translateY(-10px)";
-                    setTimeout(() => block.style.transform = "translateY(0)", 50);
-                    criarMoeda(bLeft, bBottom);
+                    b.style.transform = "translateY(-10px)";
+                    setTimeout(() => b.style.transform = "translateY(0)", 50);
+                    criarMoeda(bl, bb);
                 }
             });
 
-            // VITÓRIA: Chegou na Bandeira
-            if (posX >= 4600) {
-                jogoAtivo = false;
-                winScreen.style.display = "block";
-            }
+            if (posX >= 4600) { jogoAtivo = false; document.getElementById('win-screen').style.display = "block"; }
 
-            // Atualização Visual
             mario.style.left = posX + 'px';
             mario.style.bottom = posY + 'px';
             world.style.transform = `translateX(${-Math.max(0, posX - 350)}px)`;
 
+            // Troca de Sprite
             let img;
-            if (isJump) img = (ultimaDirecao === 'direita' ? sprites.puloDir : sprites.puloEsq);
-            else if (isCrouching) img = (ultimaDirecao === 'direita' ? sprites.agachoDir : sprites.agachoEsq);
-            else if (isLookingUp) img = sprites.olharCima;
-            else if (andando) {
+            if (isJump) img = (ultimaDir === 'direita' ? sprites.puloDir : sprites.puloEsq);
+            else if (agachado) img = (ultimaDir === 'direita' ? sprites.agachoDir : sprites.agachoEsq);
+            else if (olhandoCima) img = sprites.olharCima;
+            else if (movendo) {
                 frameAnim++;
-                img = (frameAnim % 20 < 10) ? (ultimaDirecao === 'direita' ? sprites.paradoDir : sprites.paradoEsq) : (ultimaDirecao === 'direita' ? sprites.andarDir : sprites.andarEsq);
-            } else img = (ultimaDirecao === 'direita' ? sprites.paradoDir : sprites.paradoEsq);
+                img = (frameAnim % 20 < 10) ? (ultimaDir === 'direita' ? sprites.paradoDir : sprites.paradoEsq) : (ultimaDir === 'direita' ? sprites.andarDir : sprites.andarEsq);
+            } else img = (ultimaDir === 'direita' ? sprites.paradoDir : sprites.paradoEsq);
 
             if (!mario.src.endsWith(img.replace('./',''))) mario.src = img;
 
             requestAnimationFrame(update);
         }
-
         update();
     </script>
 </body>
