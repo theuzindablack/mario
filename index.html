@@ -3,71 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mario World - Sem Fundo Branco</title>
+    <title>Mario World - Correção de Fundo</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial Black', sans-serif; }
+        body { background-color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial Black', sans-serif; }
         
+        /* O fundo azul precisa ser um pouco claro para o modo 'multiply' funcionar */
         #game-viewport { width: 800px; height: 450px; position: relative; overflow: hidden; border: 4px solid #fff; background: #5c94fc; }
         #world { position: absolute; width: 5000px; height: 100%; }
-
         .floor { position: absolute; bottom: 0; width: 100%; height: 60px; background: #70ad10; border-top: 5px solid #000; }
 
-        /* MARIO - REMOVIDO O MULTIPLY PARA NÃO FICAR INVISÍVEL */
+        /* MARIO - Aumentado e com filtro para remover fundo branco */
         #mario { 
             position: absolute; 
             width: 160px; 
             height: 160px; 
             z-index: 10; 
             image-rendering: pixelated; 
-            object-fit: contain;
-            /* Se as imagens ainda tiverem fundo branco, o ideal é usar um site como 'remove.bg' 
-               para deixá-las transparentes de verdade. */
+            /* O segredo está aqui: */
+            mix-blend-mode: multiply; 
+            filter: contrast(1.2); 
+            object-fit: contain; 
         }
 
-        /* CAIXA DE INTERROGAÇÃO (IMAGEM TRANSPARENTE REAL) */
+        /* CAIXA DE INTERROGAÇÃO (Feita em CSS para não ter fundo branco) */
         .block {
-            position: absolute; 
-            width: 60px; 
-            height: 60px;
-            background-image: url('https://doc-0c-6k-docs.googleusercontent.com/docs/securesc/68c8o630f9aoo1m7c98f8shf87h76f3f/6o5m5i5j5j5j5j5j5j5j5j5j5j5j5j5j/1700000000000/03522105439526131431/03522105439526131431/1?authuser=0'); /* Fallback caso o link expire */
-            background: orange; /* Cor de reserva */
-            border: 4px solid #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 40px;
-            color: white;
-            z-index: 5;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+            position: absolute; width: 60px; height: 60px;
+            background: #f39c12; border: 4px solid #000;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 40px; color: #fff; font-weight: bold;
+            z-index: 5; box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
         }
-        
-        /* Simulação da Caixa Interrogação se a imagem falhar */
-        .block::after { content: "?"; font-weight: bold; }
+        .block::after { content: "?"; }
 
         .coin {
-            position: absolute; width: 40px; height: 40px;
-            background: #ffd700; border-radius: 50%; border: 4px solid #f1c40f;
-            z-index: 4;
-            animation: coinPop 0.5s forwards;
+            position: absolute; width: 35px; height: 35px;
+            background: #ffd700; border-radius: 50%; border: 3px solid #b8860b;
+            z-index: 4; animation: coinPop 0.5s forwards;
         }
 
         @keyframes coinPop {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-150px); opacity: 0; }
+            100% { transform: translateY(-140px); opacity: 0; }
         }
 
-        .goal-post {
-            position: absolute; left: 4600px; bottom: 60px;
-            width: 100px; height: 320px; border-left: 10px solid #fff; border-right: 10px solid #fff;
-        }
-        .goal-bar {
-            position: absolute; width: 100%; height: 15px; background: #fff;
-            bottom: 50px; animation: moveBar 3s infinite alternate ease-in-out;
-        }
+        .goal-post { position: absolute; left: 4600px; bottom: 60px; width: 100px; height: 320px; border-left: 10px solid #fff; border-right: 10px solid #fff; }
+        .goal-bar { position: absolute; width: 100%; height: 15px; background: #fff; bottom: 50px; animation: moveBar 3s infinite alternate ease-in-out; }
+        @keyframes moveBar { from { bottom: 20px; } to { bottom: 290px; } }
 
         .overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; color: white; }
-        .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; border-radius: 8px; }
+        .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -82,9 +67,8 @@
             <div class="floor"></div>
             <div class="goal-post"><div class="goal-bar"></div></div>
 
-            <div class="block" style="left: 600px; bottom: 250px;"></div>
-            <div class="block" style="left: 665px; bottom: 250px;"></div>
-            <div class="block" style="left: 1500px; bottom: 280px;"></div>
+            <div class="block" style="left: 600px; bottom: 260px;"></div>
+            <div class="block" style="left: 665px; bottom: 260px;"></div>
 
             <img id="mario" src="parado_dir.png">
         </div>
@@ -113,7 +97,7 @@
         function criarMoeda(x, y) {
             const coin = document.createElement('div');
             coin.className = 'coin';
-            coin.style.left = (x + 10) + 'px';
+            coin.style.left = (x + 12) + 'px';
             coin.style.bottom = (y + 50) + 'px';
             world.appendChild(coin);
             setTimeout(() => coin.remove(), 500);
