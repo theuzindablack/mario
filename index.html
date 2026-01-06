@@ -9,28 +9,41 @@
         body { background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial Black', sans-serif; }
         
         #game-viewport { width: 800px; height: 450px; position: relative; overflow: hidden; border: 4px solid #fff; background: #5c94fc; }
-        #world { position: absolute; width: 5000px; height: 100%; transition: transform 0.1s linear; }
+        #world { position: absolute; width: 5000px; height: 100%; }
 
         .floor { position: absolute; bottom: 0; width: 100%; height: 60px; background: #70ad10; border-top: 5px solid #000; }
 
-        /* MARIO - AJUSTE PARA REMOVER FUNDO BRANCO */
+        /* MARIO - REMOVIDO O MULTIPLY PARA NÃO FICAR INVISÍVEL */
         #mario { 
             position: absolute; 
             width: 160px; 
             height: 160px; 
             z-index: 10; 
             image-rendering: pixelated; 
-            /* Esta linha abaixo tenta remover o fundo branco das imagens */
-            mix-blend-mode: multiply; 
-            object-fit: contain; 
+            object-fit: contain;
+            /* Se as imagens ainda tiverem fundo branco, o ideal é usar um site como 'remove.bg' 
+               para deixá-las transparentes de verdade. */
         }
 
+        /* CAIXA DE INTERROGAÇÃO (IMAGEM TRANSPARENTE REAL) */
         .block {
-            position: absolute; width: 60px; height: 60px;
-            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYURGn9L0vIHRXz3SEUw2oGSQGw_euzItjLQ&s');
-            background-size: cover;
+            position: absolute; 
+            width: 60px; 
+            height: 60px;
+            background-image: url('https://doc-0c-6k-docs.googleusercontent.com/docs/securesc/68c8o630f9aoo1m7c98f8shf87h76f3f/6o5m5i5j5j5j5j5j5j5j5j5j5j5j5j5j/1700000000000/03522105439526131431/03522105439526131431/1?authuser=0'); /* Fallback caso o link expire */
+            background: orange; /* Cor de reserva */
+            border: 4px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: white;
             z-index: 5;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
         }
+        
+        /* Simulação da Caixa Interrogação se a imagem falhar */
+        .block::after { content: "?"; font-weight: bold; }
 
         .coin {
             position: absolute; width: 40px; height: 40px;
@@ -52,7 +65,6 @@
             position: absolute; width: 100%; height: 15px; background: #fff;
             bottom: 50px; animation: moveBar 3s infinite alternate ease-in-out;
         }
-        @keyframes moveBar { from { bottom: 20px; } to { bottom: 290px; } }
 
         .overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; color: white; }
         .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; border-radius: 8px; }
@@ -71,7 +83,8 @@
             <div class="goal-post"><div class="goal-bar"></div></div>
 
             <div class="block" style="left: 600px; bottom: 250px;"></div>
-            <div class="block" style="left: 660px; bottom: 250px;"></div>
+            <div class="block" style="left: 665px; bottom: 250px;"></div>
+            <div class="block" style="left: 1500px; bottom: 280px;"></div>
 
             <img id="mario" src="parado_dir.png">
         </div>
@@ -130,8 +143,8 @@
                 let bb = parseInt(b.style.bottom);
                 if (velY < 0 && (posY + 145) >= bb && (posY + 145) <= bb + 20 && (posX + 110) > bl && (posX + 50) < bl + 60) {
                     velY = 3;
-                    b.style.transform = "scale(1.1) translateY(-10px)";
-                    setTimeout(() => b.style.transform = "scale(1) translateY(0)", 80);
+                    b.style.transform = "translateY(-15px)";
+                    setTimeout(() => b.style.transform = "translateY(0)", 100);
                     criarMoeda(bl, bb);
                 }
             });
@@ -140,11 +153,7 @@
 
             mario.style.left = posX + 'px';
             mario.style.bottom = posY + 'px';
-            
-            let cameraX = posX - 320;
-            if (cameraX < 0) cameraX = 0;
-            if (cameraX > 4200) cameraX = 4200;
-            world.style.transform = `translateX(${-cameraX}px)`;
+            world.style.transform = `translateX(${-Math.max(0, posX - 320)}px)`;
 
             let img;
             if (isJump) img = (ultimaDir === 'direita' ? sprites.puloDir : sprites.puloEsq);
