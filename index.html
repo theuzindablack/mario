@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mario World - Escala Corrigida</title>
+    <title>Mario World - Super Escala</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial Black', sans-serif; }
         
         #game-viewport { width: 800px; height: 450px; position: relative; overflow: hidden; border: 4px solid #fff; background: #5c94fc; }
-        #world { position: absolute; width: 5000px; height: 100%; }
+        #world { position: absolute; width: 5000px; height: 100%; transition: transform 0.1s linear; }
 
         /* CHÃO */
         .floor { 
@@ -17,50 +17,51 @@
             background: #70ad10; border-top: 5px solid #000;
         }
 
-        /* MARIO - AJUSTE DE TAMANHO */
+        /* MARIO - AUMENTADO PARA 160PX */
         #mario { 
             position: absolute; 
-            width: 120px; /* Aumentei para 120px */
-            height: 120px; 
+            width: 160px; 
+            height: 160px; 
             z-index: 10; 
             image-rendering: pixelated; 
             mix-blend-mode: multiply;
-            /* Garante que a imagem caiba no quadrado sem esticar */
             object-fit: contain; 
         }
 
-        /* BLOCO E MOEDA */
+        /* BLOCO - AUMENTADO PARA COMBINAR */
         .block {
-            position: absolute; width: 45px; height: 45px;
+            position: absolute; width: 60px; height: 60px;
             background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYURGn9L0vIHRXz3SEUw2oGSQGw_euzItjLQ&s');
             background-size: cover;
-            transition: transform 0.1s;
+            z-index: 5;
         }
 
+        /* MOEDA POP */
         .coin {
-            position: absolute; width: 30px; height: 30px;
-            background: #ffd700; border-radius: 50%; border: 3px solid #f1c40f;
+            position: absolute; width: 40px; height: 40px;
+            background: #ffd700; border-radius: 50%; border: 4px solid #f1c40f;
+            z-index: 4;
             animation: coinPop 0.5s forwards;
         }
 
         @keyframes coinPop {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-120px); opacity: 0; }
+            100% { transform: translateY(-150px); opacity: 0; }
         }
 
         /* BANDEIRA FINAL */
         .goal-post {
             position: absolute; left: 4600px; bottom: 60px;
-            width: 80px; height: 280px; border-left: 8px solid #fff; border-right: 8px solid #fff;
+            width: 100px; height: 320px; border-left: 10px solid #fff; border-right: 10px solid #fff;
         }
         .goal-bar {
-            position: absolute; width: 100%; height: 12px; background: #fff;
+            position: absolute; width: 100%; height: 15px; background: #fff;
             bottom: 50px; animation: moveBar 3s infinite alternate ease-in-out;
         }
-        @keyframes moveBar { from { bottom: 20px; } to { bottom: 250px; } }
+        @keyframes moveBar { from { bottom: 20px; } to { bottom: 290px; } }
 
         .overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; color: white; }
-        .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; }
+        .btn-ui { padding: 15px 30px; font-size: 20px; background: #e74c3c; color: white; border: none; cursor: pointer; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -76,9 +77,10 @@
             
             <div class="goal-post"><div class="goal-bar"></div></div>
 
-            <div class="block" style="left: 500px; bottom: 220px;"></div>
-            <div class="block" style="left: 545px; bottom: 220px;"></div>
-            <div class="block" style="left: 900px; bottom: 260px;"></div>
+            <div class="block" style="left: 600px; bottom: 250px;"></div>
+            <div class="block" style="left: 660px; bottom: 250px;"></div>
+            <div class="block" style="left: 1200px; bottom: 300px;"></div>
+            <div class="block" style="left: 2000px; bottom: 250px;"></div>
 
             <img id="mario" src="parado_dir.png">
         </div>
@@ -107,8 +109,8 @@
         function criarMoeda(x, y) {
             const coin = document.createElement('div');
             coin.className = 'coin';
-            coin.style.left = (x + 8) + 'px';
-            coin.style.bottom = (y + 40) + 'px';
+            coin.style.left = (x + 10) + 'px';
+            coin.style.bottom = (y + 50) + 'px';
             world.appendChild(coin);
             setTimeout(() => coin.remove(), 500);
         }
@@ -121,37 +123,43 @@
             let movendo = false;
 
             if (!agachado && !olhandoCima) {
-                if (keys['KeyD'] || keys['ArrowRight']) { velX = 7; ultimaDir = 'direita'; movendo = true; }
-                else if (keys['KeyA'] || keys['ArrowLeft']) { velX = -7; ultimaDir = 'esquerda'; movendo = true; }
+                if (keys['KeyD'] || keys['ArrowRight']) { velX = 8; ultimaDir = 'direita'; movendo = true; }
+                else if (keys['KeyA'] || keys['ArrowLeft']) { velX = -8; ultimaDir = 'esquerda'; movendo = true; }
                 else { velX = 0; }
             } else { velX = 0; }
 
-            if (keys['Space'] && !isJump && !agachado) { velY = -16; isJump = true; }
+            if (keys['Space'] && !isJump && !agachado) { velY = -18; isJump = true; }
 
             velY += 0.8; posY -= velY; posX += velX;
             if (posY <= 60) { posY = 60; velY = 0; isJump = false; }
             if (posX < 0) posX = 0;
 
-            // Colisão Cabeça (ajustada para o novo tamanho)
+            // Colisão Cabeça Ajustada para o Mario de 160px
             blocks.forEach(b => {
                 let bl = parseInt(b.style.left);
                 let bb = parseInt(b.style.bottom);
-                // Mario tem 120px, a cabeça está por volta de 100px de altura
-                if (velY < 0 && (posY + 105) >= bb && (posY + 105) <= bb + 15 && (posX + 80) > bl && (posX + 40) < bl + 45) {
-                    velY = 2;
-                    b.style.transform = "translateY(-10px)";
-                    setTimeout(() => b.style.transform = "translateY(0)", 50);
+                // Detecção do topo do Mario (posY + 140 aprox.)
+                if (velY < 0 && (posY + 145) >= bb && (posY + 145) <= bb + 20 && (posX + 110) > bl && (posX + 50) < bl + 60) {
+                    velY = 3;
+                    b.style.transform = "scale(1.1) translateY(-10px)";
+                    setTimeout(() => b.style.transform = "scale(1) translateY(0)", 80);
                     criarMoeda(bl, bb);
                 }
             });
 
+            // Vitória
             if (posX >= 4600) { jogoAtivo = false; document.getElementById('win-screen').style.display = "block"; }
 
             mario.style.left = posX + 'px';
             mario.style.bottom = posY + 'px';
-            world.style.transform = `translateX(${-Math.max(0, posX - 350)}px)`;
+            
+            // Câmera segue o Mario
+            let cameraX = posX - 320;
+            if (cameraX < 0) cameraX = 0;
+            if (cameraX > 4200) cameraX = 4200;
+            world.style.transform = `translateX(${-cameraX}px)`;
 
-            // Troca de Sprite
+            // Lógica de Sprites
             let img;
             if (isJump) img = (ultimaDir === 'direita' ? sprites.puloDir : sprites.puloEsq);
             else if (agachado) img = (ultimaDir === 'direita' ? sprites.agachoDir : sprites.agachoEsq);
